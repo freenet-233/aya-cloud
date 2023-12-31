@@ -1,8 +1,8 @@
 package com.aya.cloud.core.service.qrcode.processor;
 
-import cn.hutool.extra.qrcode.BufferedImageLuminanceSource;
 import com.aya.cloud.core.service.qrcode.QRCodeResult;
 import com.google.zxing.*;
+import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
