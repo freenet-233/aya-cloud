@@ -2,14 +2,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>io.github.aya</groupId>
+    <groupId>com.wang.aya</groupId>
     <artifactId>aya-cloud</artifactId>
-    <version>${revision}</version>
+    <version>1.0.0</version>
     <packaging>pom</packaging>
 
     <modules>
-        <module>aya-dependencies</module>
-        <module>aya-starter-boot</module>
+        <module>aya-common</module>
     </modules>
 
     <name>aya-cloud</name>
@@ -17,95 +16,415 @@
     <url>https://www.aya.com</url>
 
     <properties>
-        <revision>1.0.0-SNAPSHOT</revision>
+        <aya.version>1.0.0</aya.version>
         <java.version>21</java.version>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+        <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+        <spring-boot-maven-plugin.version>3.3.3</spring-boot-maven-plugin.version>
+        <maven-surefire-plugin.version>3.5.0</maven-surefire-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <flatten-maven-plugin.version>1.5.0</flatten-maven-plugin.version>
-        <maven-surefire-plugin.version>3.2.3</maven-surefire-plugin.version>
-        <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
+
+        <!-- dependencies -->
+        <spring-boot.version>3.3.3</spring-boot.version>
+        <spring-cloud.version>2023.0.3</spring-cloud.version>
+        <spring.cloud.alibaba.version>2023.0.1.2</spring.cloud.alibaba.version>
+        <spring-framework.version>6.1.12</spring-framework.version>
+        <springdoc-openapi.version>2.6.0</springdoc-openapi.version>
+
+        <mysql-connector-j.version>8.0.33</mysql-connector-j.version>
+        <druid.version>1.2.23</druid.version>
+        <mybatis-plus-boot-starter.version>3.5.7</mybatis-plus-boot-starter.version>
+        <mybatis-spring.version>3.0.3</mybatis-spring.version>
+        <jetcache-starter-redis.version>2.7.4</jetcache-starter-redis.version>
+        <commons-pool2-version>2.12.0</commons-pool2-version>
+        <commons-lang3.version>3.16.0</commons-lang3.version>
+        <httpclient5.version>5.2.1</httpclient5.version>
+        <gson.version>2.11.0</gson.version>
+        <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
+        <shedlock.version>5.15.1</shedlock.version>
+
+        <docker.host>tcp://127.0.0.1:2375</docker.host>
+        <docker.registry>registry.cn-shenzhen.aliyuncs.com</docker.registry>
+        <docker.namespace>koushenhai</docker.namespace>
+        <docker.username>username</docker.username>
+        <docker.password>password</docker.password>
+        <docker-maven-plugin.version>0.45.0</docker-maven-plugin.version>
+        <maven-checkstyle-plugin.version>3.5.0</maven-checkstyle-plugin.version>
+        <native-maven-plugin.version>0.10.2</native-maven-plugin.version>
+        <versions-maven-plugin.version>2.17.1</versions-maven-plugin.version>
+        <spring-asciidoctor-backends.version>0.0.7</spring-asciidoctor-backends.version>
+        <asciidoctor-maven-plugin.version>3.0.0</asciidoctor-maven-plugin.version>
+        <spring-javaformat-maven-plugin.version>0.0.43</spring-javaformat-maven-plugin.version>
+        <maven-archetype-plugin.version>3.2.1</maven-archetype-plugin.version>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.wang</groupId>
+                <artifactId>aya-common-bom</artifactId>
+                <version>${aya.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- spring boot -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-parent</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- spring cloud -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- spring cloud alibaba -->
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+                <version>${spring.cloud.alibaba.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- 定义spring framework 版本 -->
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-framework-bom</artifactId>
+                <version>${spring-framework.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- 定义 springdoc openapi 版本 -->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi</artifactId>
+                <version>${springdoc-openapi.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <profiles>
+        <!-- 开发环境 -->
+        <!--<profile>
+            <id>dev</id>
+            <properties>
+                <DATASOURCE-USERNAME-NACOS>root</DATASOURCE-USERNAME-NACOS>
+                <DATASOURCE-PASSWORD-NACOS>root123</DATASOURCE-PASSWORD-NACOS>
+                <DATASOURCE-USERNAME-SNAIL-JOB>root</DATASOURCE-USERNAME-SNAIL-JOB>
+                <DATASOURCE-PASSWORD-SNAIL-JOB>root123</DATASOURCE-PASSWORD-SNAIL-JOB>
+                <DATASOURCE-HOST>postgresql.wang.com</DATASOURCE-HOST>
+                <DATASOURCE-PARAM-NACOS>tcpKeepAlive=true&amp;reWriteBatchedInserts=true&amp;ApplicationName=laokou-register&amp;useSSL=false&amp;reWriteBatchedInserts=true&amp;stringtype=unspecified</DATASOURCE-PARAM-NACOS>
+                <DATASOURCE-PARAM-SNAIL-JOB>tcpKeepAlive=true&amp;reWriteBatchedInserts=true&amp;ApplicationName=laokou-snail-job&amp;useSSL=false&amp;reWriteBatchedInserts=true&amp;stringtype=unspecified</DATASOURCE-PARAM-SNAIL-JOB>
+                <DATASOURCE-PORT>3306</DATASOURCE-PORT>
+                <DATASOURCE-DRIVER-CLASS-NAME>org.postgresql.Driver</DATASOURCE-DRIVER-CLASS-NAME>
+                <DATASOURCE-PLATFORM>postgresql</DATASOURCE-PLATFORM>
+                <DATASOURCE-DB-NACOS>kcloud_platform_nacos</DATASOURCE-DB-NACOS>
+                <DATASOURCE-DB-SNAIL-JOB>kcloud_platform_snail_job</DATASOURCE-DB-SNAIL-JOB>
+                <NACOS-NAMESPACE>0dac1a68-2f01-40df-bd26-bf0cb199057a</NACOS-NAMESPACE>
+                <NACOS-DISCOVERY-ADDRESS>127.0.0.1:8848</NACOS-DISCOVERY-ADDRESS>
+                <NACOS-CONFIG-ADDRESS>127.0.0.1:8848</NACOS-CONFIG-ADDRESS>
+                <NACOS-GROUP>LAOKOU_GROUP</NACOS-GROUP>
+                <NACOS-USERNAME>nacos</NACOS-USERNAME>
+                <NACOS-PASSWORD>nacos</NACOS-PASSWORD>
+                <NACOS-CLUSTER-NAME>laokou-nacos-cluster</NACOS-CLUSTER-NAME>
+                <SENTINEL-USERNAME>sentinel</SENTINEL-USERNAME>
+                <SENTINEL-PASSWORD>sentinel</SENTINEL-PASSWORD>
+                <PROFILE-ACTIVE>dev</PROFILE-ACTIVE>
+                <SSL-ENABLED>false</SSL-ENABLED>
+                <JASYPT-ENCRYPTOR-PASSWORD>5201314wumeihua</JASYPT-ENCRYPTOR-PASSWORD>
+            </properties>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+        </profile>-->
+        <!-- 测试环境 -->
+        <!--<profile>
+            <id>test</id>
+            <properties>
+                <DATASOURCE-USERNAME-NACOS>ENC(aEwhK+oj5wQ/pJfRcfwXAw==)</DATASOURCE-USERNAME-NACOS>
+                <DATASOURCE-PASSWORD-NACOS>ENC(gruSGjDZ03lAN3qyE5UisGE2tvN3gS3Y)</DATASOURCE-PASSWORD-NACOS>
+                <DATASOURCE-USERNAME-SNAIL-JOB>
+                    ENC(4pcvkMAYo/eI8yyOWMkKrZ5ULU2ITC7V9wivUEe9F99Phsh/FJeP+WxZB+wxBgjm)
+                </DATASOURCE-USERNAME-SNAIL-JOB>
+                <DATASOURCE-PASSWORD-SNAIL-JOB>
+                    ENC(L22TUOP+1sSFU+2G/O6+/GCGTudE8Gb2Haf+0rlMxohzTd2l5nmdszMg4Me/Ogae)
+                </DATASOURCE-PASSWORD-SNAIL-JOB>
+                <DATASOURCE-HOST>postgresql.laokou.org</DATASOURCE-HOST>
+                <DATASOURCE-PARAM-NACOS>tcpKeepAlive=true&amp;reWriteBatchedInserts=true&amp;ApplicationName=laokou-register&amp;useSSL=false&amp;reWriteBatchedInserts=true&amp;stringtype=unspecified</DATASOURCE-PARAM-NACOS>
+                <DATASOURCE-PARAM-SNAIL-JOB>tcpKeepAlive=true&amp;reWriteBatchedInserts=true&amp;ApplicationName=laokou-snail-job&amp;useSSL=false&amp;reWriteBatchedInserts=true&amp;stringtype=unspecified</DATASOURCE-PARAM-SNAIL-JOB>
+                <DATASOURCE-PORT>5432</DATASOURCE-PORT>
+                <DATASOURCE-DRIVER-CLASS-NAME>org.postgresql.Driver</DATASOURCE-DRIVER-CLASS-NAME>
+                <DATASOURCE-PLATFORM>postgresql</DATASOURCE-PLATFORM>
+                <DATASOURCE-DB-NACOS>kcloud_platform_nacos</DATASOURCE-DB-NACOS>
+                <DATASOURCE-DB-SNAIL-JOB>kcloud_platform_snail_job</DATASOURCE-DB-SNAIL-JOB>
+                <NACOS-NAMESPACE>a61abd4c-ef96-42a5-99a1-616adee531f3</NACOS-NAMESPACE>
+                <NACOS-DISCOVERY-ADDRESS>https://nacos.laokou.org:8848</NACOS-DISCOVERY-ADDRESS>
+                <NACOS-CONFIG-ADDRESS>https://nacos.laokou.org:8848</NACOS-CONFIG-ADDRESS>
+                <NACOS-GROUP>LAOKOU_GROUP</NACOS-GROUP>
+                <NACOS-USERNAME>nacos</NACOS-USERNAME>
+                <NACOS-PASSWORD>nacos</NACOS-PASSWORD>
+                <NACOS-CLUSTER-NAME>laokou-nacos-cluster</NACOS-CLUSTER-NAME>
+                <SENTINEL-USERNAME>sentinel</SENTINEL-USERNAME>
+                <SENTINEL-PASSWORD>sentinel</SENTINEL-PASSWORD>
+                <PROFILE-ACTIVE>test</PROFILE-ACTIVE>
+                <SSL-ENABLED>true</SSL-ENABLED>
+                <JASYPT-ENCRYPTOR-PASSWORD>5201314wumeihua</JASYPT-ENCRYPTOR-PASSWORD>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>-->
+        <!-- 正式环境 -->
+        <!--<profile>
+            <id>prod</id>
+            <properties>
+                &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;
+                <DATASOURCE-USERNAME-NACOS>
+                    ${DATASOURCE_USERNAME_NACOS:ENC(aEwhK+oj5wQ/pJfRcfwXAw==)}
+                </DATASOURCE-USERNAME-NACOS>
+                &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;
+                <DATASOURCE-PASSWORD-NACOS>
+                    ${DATASOURCE_PASSWORD_NACOS:ENC(gruSGjDZ03lAN3qyE5UisGE2tvN3gS3Y)}
+                </DATASOURCE-PASSWORD-NACOS>
+                &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;
+                <DATASOURCE-USERNAME-SNAIL-JOB>
+                    ${DATASOURCE_USERNAME_SNAIL_JOB:ENC(4pcvkMAYo/eI8yyOWMkKrZ5ULU2ITC7V9wivUEe9F99Phsh/FJeP+WxZB+wxBgjm)}
+                </DATASOURCE-USERNAME-SNAIL-JOB>
+                &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;
+                <DATASOURCE-PASSWORD-SNAIL-JOB>
+                    ${DATASOURCE_PASSWORD_SNAIL_JOB:ENC(L22TUOP+1sSFU+2G/O6+/GCGTudE8Gb2Haf+0rlMxohzTd2l5nmdszMg4Me/Ogae)}
+                </DATASOURCE-PASSWORD-SNAIL-JOB>
+                &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;
+                <DATASOURCE-HOST>${DATASOURCE_HOST:postgresql.laokou.org}</DATASOURCE-HOST>
+                &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;
+                <DATASOURCE-PARAM-NACOS>
+                    ${DATASOURCE_PARAM_NACOS:tcpKeepAlive=true&amp;reWriteBatchedInserts=true&amp;ApplicationName=laokou-register&amp;useSSL=false&amp;reWriteBatchedInserts=true&amp;stringtype=unspecified}
+                </DATASOURCE-PARAM-NACOS>
+                &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;
+                <DATASOURCE-PARAM-SNAIL-JOB>
+                    ${DATASOURCE_PARAM_SNAIL_JOB:tcpKeepAlive=true&amp;reWriteBatchedInserts=true&amp;ApplicationName=laokou-snail-job&amp;useSSL=false&amp;reWriteBatchedInserts=true&amp;stringtype=unspecified}
+                </DATASOURCE-PARAM-SNAIL-JOB>
+                &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;
+                <DATASOURCE-PORT>${DATASOURCE_PORT:5432}</DATASOURCE-PORT>
+                &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;
+                <DATASOURCE-DRIVER-CLASS-NAME>
+                    ${DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
+                </DATASOURCE-DRIVER-CLASS-NAME>
+                &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;
+                <DATASOURCE-PLATFORM>${DATASOURCE_PLATFORM:postgresql}</DATASOURCE-PLATFORM>
+                &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;
+                <DATASOURCE-DB-NACOS>${DATASOURCE_DB_NACOS:kcloud_platform_nacos}</DATASOURCE-DB-NACOS>
+                &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;
+                <DATASOURCE-DB-SNAIL-JOB>${DATASOURCE_DB_POWER_JOB:kcloud_platform_snail_job}</DATASOURCE-DB-SNAIL-JOB>
+                &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;
+                <NACOS-NAMESPACE>${NACOS_NAMESPACE:8140e92b-fb43-48f5-b63b-7506185206a5}</NACOS-NAMESPACE>
+                &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;
+                <NACOS-DISCOVERY-ADDRESS>${NACOS_DISCOVERY_ADDRESS:https://nacos.laokou.org:8848}</NACOS-DISCOVERY-ADDRESS>
+                &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;
+                <NACOS-CONFIG-ADDRESS>${NACOS_CONFIG_ADDRESS:https://nacos.laokou.org:8848}</NACOS-CONFIG-ADDRESS>
+                &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;
+                <NACOS-GROUP>${NACOS_GROUP:LAOKOU_GROUP}</NACOS-GROUP>
+                &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;
+                <NACOS-USERNAME>${NACOS_USERNAME:nacos}</NACOS-USERNAME>
+                &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;
+                <NACOS-PASSWORD>${NACOS_PASSWORD:nacos}</NACOS-PASSWORD>
+                &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;
+                <NACOS-CLUSTER-NAME>${NACOS_CLUSTER_NAME:laokou-nacos-cluster}</NACOS-CLUSTER-NAME>
+                &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;
+                <SENTINEL-USERNAME>${SENTINEL_USERNAME:sentinel}</SENTINEL-USERNAME>
+                &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;
+                <SENTINEL-PASSWORD>${SENTINEL_PASSWORD:sentinel}</SENTINEL-PASSWORD>
+                <PROFILE-ACTIVE>prod</PROFILE-ACTIVE>
+                <SSL-ENABLED>true</SSL-ENABLED>
+                &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;
+                <JASYPT-ENCRYPTOR-PASSWORD>${JASYPT_ENCRYPTOR_PASSWORD:5201314wumeihua}</JASYPT-ENCRYPTOR-PASSWORD>
+            </properties>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+        </profile>-->
+    </profiles>
+
     <build>
-        <finalName>${project.name}</finalName>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
-        <pluginManagement>
-            <plugins>
-                <!--  junit5测试案例执行插件  -->
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <!-- JUnit 5 requires Surefire version 2.22.0 or higher -->
-                    <version>${maven-surefire-plugin.version}</version>
-                </plugin>
-                <!--源码打包插件-->
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-source-plugin</artifactId>
-                    <version>${maven-source-plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <phase>package</phase>
-                            <goals>
-                                <goal>jar-no-fork</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-                <!--版本管理-->
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>flatten-maven-plugin</artifactId>
-                    <version>1.5.0</version>
-                    <configuration>
-                        <!-- 避免IDE将 .flattened-pom.xml 自动识别为功能模块 -->
-                        <flattenedPomFilename>pom-xml-flattened</flattenedPomFilename>
-                        <updatePomFile>true</updatePomFile>
-                        <flattenMode>resolveCiFriendliesOnly</flattenMode>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <id>flatten</id>
-                            <phase>process-resources</phase>
-                            <goals>
-                                <goal>flatten</goal>
-                            </goals>
-                        </execution>
-                        <execution>
-                            <id>flatten.clean</id>
-                            <phase>clean</phase>
-                            <goals>
-                                <goal>clean</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-            </plugins>
-
-        </pluginManagement>
-
         <plugins>
+            <!--先set后commit【先运行插件，再修改版本】-->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
-                <artifactId>flatten-maven-plugin</artifactId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>${versions-maven-plugin.version}</version>
+                <configuration>
+                    <!--备份版本-->
+                    <generateBackupPoms>true</generateBackupPoms>
+                    <newVersion>3.3.4</newVersion>
+                    <oldVersion>3.3.3</oldVersion>
+                </configuration>
             </plugin>
-
+            <plugin>
+                <groupId>io.spring.javaformat</groupId>
+                <artifactId>spring-javaformat-maven-plugin</artifactId>
+                <version>${spring-javaformat-maven-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${maven-checkstyle-plugin.version}</version>
+                <configuration>
+                    <configLocation>checkstyle/checkstyle.xml</configLocation>
+                    <consoleOutput>true</consoleOutput>
+                    <failsOnError>true</failsOnError>
+                    <failOnViolation>true</failOnViolation>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    <skip>false</skip>
+                    <linkXRef>false</linkXRef>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>install</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>checkstyle</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- 打包插件，将 Java 源代码编译为字节码（.class 文件） -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                    <compilerArgs>
+                        <arg>-Xlint:-options</arg>
+                        <arg>-Xlint:varargs</arg>
+                        <arg>-Xlint:rawtypes</arg>
+                        <arg>-Xlint:unchecked</arg>
+                        <arg>-Xlint:deprecation</arg>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-archetype-plugin</artifactId>
+                <version>${maven-archetype-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>${docker-maven-plugin.version}</version>
+                <configuration>
+                    <!--Docker主机-->
+                    <dockerHost>${docker.host}</dockerHost>
+                    <!--Docker私库-->
+                    <registry>${docker.registry}</registry>
+                    <!-- 认证信息-->
+                    <authConfig>
+                        <push>
+                            <username>${docker.username}</username>
+                            <password>${docker.password}</password>
+                        </push>
+                    </authConfig>
+                    <images>
+                        <image>
+                            <!-- 推送仓库/命名空间/仓库名称:镜像版本号-->
+                            <name>${docker.registry}/${docker.namespace}/${project.artifactId}:${project.version}</name>
+                            <build>
+                                <tags>
+                                    <tag>${project.version}</tag>
+                                </tags>
+                                <!-- 指定dockerfile文件的位置-->
+                                <dockerFile>${project.basedir}/Dockerfile</dockerFile>
+                            </build>
+                        </image>
+                    </images>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <skip>true</skip>
+                    <argLine>
+                        --add-opens java.base/java.util=ALL-UNNAMED
+                        --add-opens java.base/java.lang=ALL-UNNAMED
+                    </argLine>
+                </configuration>
+            </plugin>
+            <!--<plugin>
+                <groupId>org.asciidoctor</groupId>
+                <artifactId>asciidoctor-maven-plugin</artifactId>
+                <version>${asciidoctor-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>generate-html-documentation</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>process-asciidoc</goal>
+                        </goals>
+                        <configuration>
+                            <backend>spring-html</backend>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>io.spring.asciidoctor.backends</groupId>
+                        <artifactId>spring-asciidoctor-backends</artifactId>
+                        <version>${spring-asciidoctor-backends.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>-->
         </plugins>
+        <!-- profile对资源的操作 -->
+        <resources>
+            <!-- 打包的时候先去掉所有的配置文件 -->
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>application*.yml</exclude>
+                    <exclude>bootstrap*.yml</exclude>
+                    <exclude>log4j2*.xml</exclude>
+                    <exclude>*.json</exclude>
+                    <exclude>*.properties</exclude>
+                </excludes>
+            </resource>
+            <!-- 添加需要包含的文件 -->
+            <resource>
+                <directory>src/main/resources</directory>
+                <!-- 是否替换yml或者properties里@xx@表示的maven properties属性值 -->
+                <filtering>true</filtering>
+                <!-- 在打包的时候，根据-P参数，加上需要的yml配置文件 -->
+                <includes>
+                    <include>application.yml</include>
+                    <include>application-${PROFILE-ACTIVE}.yml</include>
+                    <include>bootstrap.yml</include>
+                    <include>bootstrap-${PROFILE-ACTIVE}.yml</include>
+                    <include>log4j2-${PROFILE-ACTIVE}.xml</include>
+                    <include>init_router.json</include>
+                    <include>log4j2.component.properties</include>
+                </includes>
+            </resource>
+        </resources>
     </build>
 
     <repositories>
-        <!--<repository>
+        <repository>
             <id>huaweicloud</id>
             <name>huawei</name>
             <url>https://mirrors.huaweicloud.com/repository/maven/</url>
-        </repository>-->
+        </repository>
         <repository>
             <id>aliyunmaven</id>
             <name>aliyun</name>
